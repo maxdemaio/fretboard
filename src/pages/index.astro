@@ -3,13 +3,13 @@ import Layout from "../layouts/Layout.astro";
 ---
 
 <style>
-	.numeric-input {
-		width: 50px;
-	}
-	#curr-note {
-		font-size: 12rem;
-		text-align: center;
-	}
+  .numeric-input {
+    width: 50px;
+  }
+  #curr-note {
+    font-size: 12rem;
+    text-align: center;
+  }
 </style>
 
 <Layout title="Fretboard">
@@ -21,7 +21,7 @@ import Layout from "../layouts/Layout.astro";
       <form id="fret-form">
         <label for="numericInput">Current string being practiced:</label>
         <input
-					class="numeric-input"
+          class="numeric-input"
           type="number"
           id="numericInput"
           name="numericInput"
@@ -38,17 +38,25 @@ import Layout from "../layouts/Layout.astro";
           required
         />
         <small>(Enter comma-delimited letters only)</small><br /><br />
-
+        <label for="numericInput">Time (minutes) you want to practice:</label>
+        <input
+          type="number"
+          id="numericInput2"
+          name="numericInput2"
+          min="1"
+          max="100"
+          required
+        />
+        <br />
         <input type="submit" value="Submit" />
       </form>
     </section>
-		<section>
-			<p>Current string: <span id="curr-string"></span></p>
-			<p>Current note:</p>
-			<div id="curr-note">
-				E
-			</div>
-		</section>
+    <section>
+      <p>Current string: <span id="curr-string">None</span></p>
+      <div>Countdown <span id="countdown"></span></div>
+      <p>Current note:</p>
+      <div id="curr-note">No note</div>
+    </section>
   </main>
 </Layout>
 
@@ -69,15 +77,51 @@ import Layout from "../layouts/Layout.astro";
     // Function to handle form submission
     function handleSubmit(event: SubmitEvent) {
       event.preventDefault(); // Prevent the form from submitting
-      const commaDelimitedInput = document.getElementById(
+
+      const noteInput = document.getElementById(
         "commaDelimitedInput"
       ) as HTMLInputElement | null;
-      if (commaDelimitedInput) {
-        if (validateText(commaDelimitedInput.value)) {
-          alert("Good");
-        } else {
-          alert("Bad");
+      const stringInput = document.getElementById(
+        "numericInput"
+      ) as HTMLInputElement | null;
+
+			const timeInput = document.getElementById(
+				"numericInput2"
+			) as HTMLInputElement | null;
+
+      if (noteInput && stringInput && timeInput) {
+        // Validate the comma-delimited string of notes
+        if (!validateText(noteInput.value)) {
+          alert("Bad input");
         }
+
+        // Set string
+        const currStringEle = document.getElementById("curr-string");
+        if (currStringEle) {
+          currStringEle.innerText = stringInput.value;
+        }
+
+				const countdownElement = document.getElementById("countdown");
+        if (countdownElement) {
+          const timeInMinutes = parseInt(timeInput.value);
+          const timeInSeconds = timeInMinutes * 60;
+          startCountdown(timeInSeconds, countdownElement);
+        }
+      }
+
+      function startCountdown(duration: number, element: HTMLElement) {
+        let timer = duration;
+        const interval = setInterval(() => {
+          const minutes = Math.floor(timer / 60);
+          const seconds = timer % 60;
+
+          element.innerText = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+
+          if (--timer < 0) {
+            clearInterval(interval);
+            element.innerText = "Time's up!";
+          }
+        }, 1000);
       }
     }
   }
