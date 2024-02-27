@@ -2,6 +2,16 @@
 import Layout from "../layouts/Layout.astro";
 ---
 
+<style>
+	.numeric-input {
+		width: 50px;
+	}
+	#curr-note {
+		font-size: 12rem;
+		text-align: center;
+	}
+</style>
+
 <Layout title="Fretboard">
   <main class="">
     <h1 class="header">Fretboard</h1>
@@ -11,6 +21,7 @@ import Layout from "../layouts/Layout.astro";
       <form id="fret-form">
         <label for="numericInput">Current string being practiced:</label>
         <input
+					class="numeric-input"
           type="number"
           id="numericInput"
           name="numericInput"
@@ -31,6 +42,13 @@ import Layout from "../layouts/Layout.astro";
         <input type="submit" value="Submit" />
       </form>
     </section>
+		<section>
+			<p>Current string: <span id="curr-string"></span></p>
+			<p>Current note:</p>
+			<div id="curr-note">
+				E
+			</div>
+		</section>
   </main>
 </Layout>
 
