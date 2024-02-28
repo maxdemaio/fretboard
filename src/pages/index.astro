@@ -3,6 +3,15 @@ import Layout from "../layouts/Layout.astro";
 ---
 
 <style>
+  .header {
+    text-align: center;
+    font-size: 2rem;
+  }
+  #fret-form {
+    border: solid gray 1px;
+    border-radius: 8px;
+    padding: 12px;
+  }
   .numeric-input {
     width: 50px;
   }
@@ -53,7 +62,7 @@ import Layout from "../layouts/Layout.astro";
     </section>
     <section>
       <p>Current string: <span id="curr-string">None</span></p>
-      <div>Countdown <span id="countdown"></span></div>
+      <div>Countdown: <span id="countdown"></span></div>
       <p>Current note:</p>
       <div id="curr-note">No note</div>
     </section>
@@ -62,6 +71,43 @@ import Layout from "../layouts/Layout.astro";
 
 <script>
   const form = document.getElementById("fret-form");
+  let intervalId: number | undefined = undefined;
+  const delayInSeconds: number = 3; // Delay in seconds between notes
+
+  // Function to shuffle array in place
+  function shuffleArray(array: string[]) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function shuffleArrayWithEvenDistribution(
+    notes: string[],
+    durationInMinutes: number,
+    delayInSeconds: number
+  ): string[] {
+    // Calculate total iterations
+    const totalIterations = Math.floor(
+      (durationInMinutes * 60) / delayInSeconds
+    );
+    const elementsCount = notes.length;
+
+    // Determine repeats per element
+    const repeatsPerElement = Math.ceil(totalIterations / elementsCount);
+
+    // Create an array with repeated elements
+    const repeatedArray: string[] = [];
+    for (let i = 0; i < repeatsPerElement; i++) {
+      repeatedArray.push(...notes);
+    }
+
+    // Shuffle the repeated array
+    shuffleArray(repeatedArray);
+
+    return repeatedArray;
+  }
+
   if (form) {
     form.addEventListener("submit", handleSubmit);
     // Function to validate the comma-delimited string of letters
@@ -85,43 +131,94 @@ import Layout from "../layouts/Layout.astro";
         "numericInput"
       ) as HTMLInputElement | null;
 
-			const timeInput = document.getElementById(
-				"numericInput2"
-			) as HTMLInputElement | null;
+      const timeInput = document.getElementById(
+        "numericInput2"
+      ) as HTMLInputElement | null;
 
       if (noteInput && stringInput && timeInput) {
         // Validate the comma-delimited string of notes
         if (!validateText(noteInput.value)) {
           alert("Bad input");
+          return;
         }
 
-        // Set string
+        //// Set string
         const currStringEle = document.getElementById("curr-string");
         if (currStringEle) {
           currStringEle.innerText = stringInput.value;
         }
-
-				const countdownElement = document.getElementById("countdown");
+				
+				//// Start countdown
+        const countdownElement = document.getElementById("countdown");
         if (countdownElement) {
           const timeInMinutes = parseInt(timeInput.value);
           const timeInSeconds = timeInMinutes * 60;
+
+          // Clear previous interval if exists
+          if (intervalId) clearInterval(intervalId);
           startCountdown(timeInSeconds, countdownElement);
         }
+
+				//// Start going through the notes
+				const currNoteElement = document.getElementById("curr-note");
+				if (currNoteElement) {
+					currNoteElement.innerText = "Loading...";
+				}
+
+				// Split the comma-delimited string into an array
+				const notes = noteInput.value.split(",");
+
+				// Shuffle the array with even distribution
+				const shuffledArray = shuffleArrayWithEvenDistribution(
+					notes,
+					parseInt(timeInput.value),
+					delayInSeconds
+				);
+
+				// Update the current note with the shuffled array
+				updateCurrNoteWithShuffledArray(shuffledArray, delayInSeconds);
       }
 
       function startCountdown(duration: number, element: HTMLElement) {
         let timer = duration;
-        const interval = setInterval(() => {
+        intervalId = setInterval(() => {
           const minutes = Math.floor(timer / 60);
           const seconds = timer % 60;
 
           element.innerText = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
 
           if (--timer < 0) {
-            clearInterval(interval);
+            clearInterval(intervalId);
             element.innerText = "Time's up!";
           }
         }, 1000);
+      }
+
+      function updateCurrNoteWithShuffledArray(
+        shuffledArray: string[],
+        delayInSeconds: number
+      ) {
+        let currentIndex = 0;
+
+        function updateNote() {
+          const currNoteElement = document.getElementById("curr-note");
+          if (currNoteElement) {
+            currNoteElement.innerText = shuffledArray[currentIndex];
+          }
+
+          currentIndex++;
+
+          // If currentIndex reaches the end of the array, reset it to start over
+          if (currentIndex === shuffledArray.length) {
+            currentIndex = 0;
+          }
+
+          // Call updateNote again after the specified delay
+          setTimeout(updateNote, delayInSeconds * 1000);
+        }
+
+        // Start the iteration
+        updateNote();
       }
     }
   }
