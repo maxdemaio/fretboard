@@ -3,6 +3,13 @@ import Layout from "../layouts/Layout.astro";
 ---
 
 <style>
+  main {
+    padding: 0 0 8rem 0;
+  }
+
+	.note-container {
+		text-align: center;
+	}
   .header {
     text-align: center;
     font-size: 2rem;
@@ -16,15 +23,48 @@ import Layout from "../layouts/Layout.astro";
     width: 50px;
   }
   #curr-note {
-    font-size: 12rem;
+    font-size: 8rem;
     text-align: center;
+		line-height: 1;
+  }
+
+  .double {
+    border-bottom: solid 1px white;
   }
 </style>
 
 <Layout title="Fretboard">
   <main class="">
     <h1 class="header">Fretboard</h1>
-    <p>Here is an explanation of how the app works</p>
+    <p>Here is an explanation of how the app works:</p>
+    <ul>
+      <li>
+        <a href="https://youtu.be/oqK0WrcokpM">https://youtu.be/oqK0WrcokpM</a>
+      </li>
+      <li>
+        Start with 3 notes on one string. This app will call out random note,
+        play it after you see it called out.
+      </li>
+
+      <li>
+        Do this for a couple minutes. Practice it until you can play the notes
+        right after with no hesitation.
+      </li>
+      <li>
+        The next day, practice the previous days' notes you did already to
+        start. Make sure there’s 0 hesitation. Only if you can do that, add one
+        note to that string and repeat the process.
+      </li>
+      <li>
+        The next day, repeat the same as above. After finishing the 6th string,
+        move to the 5th and so on. Take in data as your doing this like if it’s
+        on a dotted/non-dotted fret or relative stuff.
+      </li>
+      <li>
+        Other exercises: identify all the C’s vertically and horizontally.
+        Identify all notes in X chord. Identify the intervals in X chord.
+      </li>
+    </ul>
 
     <section>
       <form id="fret-form">
@@ -37,7 +77,7 @@ import Layout from "../layouts/Layout.astro";
           min="1"
           max="6"
           required
-        /><br /><br />
+        /><small>(1-6)</small><br /><br />
 
         <label for="commaDelimitedInput">Notes you want to practice:</label>
         <input
@@ -46,7 +86,7 @@ import Layout from "../layouts/Layout.astro";
           name="commaDelimitedInput"
           required
         />
-        <small>(Enter comma-delimited letters only)</small><br /><br />
+        <small>(Enter comma-delimited letters only like e,f,g)</small><br /><br />
         <label for="numericInput">Time (minutes) you want to practice:</label>
         <input
           type="number"
@@ -55,7 +95,7 @@ import Layout from "../layouts/Layout.astro";
           min="1"
           max="100"
           required
-        />
+        /><small>(1-100)</small>
         <br />
         <input type="submit" value="Submit" />
       </form>
@@ -64,15 +104,19 @@ import Layout from "../layouts/Layout.astro";
       <p>Current string: <span id="curr-string">None</span></p>
       <div>Countdown: <span id="countdown"></span></div>
       <p>Current note:</p>
-      <div id="curr-note">No note</div>
+			<div class="note-container">
+				<span id="curr-note">No note</span>
+			</div>
     </section>
   </main>
 </Layout>
 
 <script>
   const form = document.getElementById("fret-form");
-  let intervalId: number | undefined = undefined;
+  let countDownIntervalId: number | undefined = undefined;
+  let noteIntervalId: number | undefined = undefined;
   const delayInSeconds: number = 3; // Delay in seconds between notes
+	let prevUnderlined: boolean = false;
 
   // Function to shuffle array in place
   function shuffleArray(array: string[]) {
@@ -88,6 +132,9 @@ import Layout from "../layouts/Layout.astro";
     delayInSeconds: number
   ): string[] {
     // Calculate total iterations
+    // duration = 60 seconds
+    // delay = 3 seconds
+    // totalIterations = 60 / 3 = 20
     const totalIterations = Math.floor(
       (durationInMinutes * 60) / delayInSeconds
     );
@@ -105,6 +152,7 @@ import Layout from "../layouts/Layout.astro";
     // Shuffle the repeated array
     shuffleArray(repeatedArray);
 
+    console.log("Here are your notes!", repeatedArray);
     return repeatedArray;
   }
 
@@ -147,48 +195,50 @@ import Layout from "../layouts/Layout.astro";
         if (currStringEle) {
           currStringEle.innerText = stringInput.value;
         }
-				
-				//// Start countdown
+
+        //// Start countdown
         const countdownElement = document.getElementById("countdown");
         if (countdownElement) {
           const timeInMinutes = parseInt(timeInput.value);
           const timeInSeconds = timeInMinutes * 60;
 
           // Clear previous interval if exists
-          if (intervalId) clearInterval(intervalId);
+          if (countDownIntervalId) clearInterval(countDownIntervalId);
           startCountdown(timeInSeconds, countdownElement);
         }
 
-				//// Start going through the notes
-				const currNoteElement = document.getElementById("curr-note");
-				if (currNoteElement) {
-					currNoteElement.innerText = "Loading...";
-				}
+        //// Start going through the notes
+        const currNoteElement = document.getElementById("curr-note");
+        if (currNoteElement) {
+          currNoteElement.innerText = "Loading...";
+        }
 
-				// Split the comma-delimited string into an array
-				const notes = noteInput.value.split(",");
+        // Split the comma-delimited string into an array
+        const notes = noteInput.value.split(",");
 
-				// Shuffle the array with even distribution
-				const shuffledArray = shuffleArrayWithEvenDistribution(
-					notes,
-					parseInt(timeInput.value),
-					delayInSeconds
-				);
+        // Shuffle the array with even distribution
+        const shuffledArray = shuffleArrayWithEvenDistribution(
+          notes,
+          parseInt(timeInput.value),
+          delayInSeconds
+        );
 
-				// Update the current note with the shuffled array
-				updateCurrNoteWithShuffledArray(shuffledArray, delayInSeconds);
+        // Clear previous interval if exists
+        if (noteIntervalId) clearInterval(noteIntervalId);
+        // Update the current note with the shuffled array
+        updateCurrNoteWithShuffledArray(shuffledArray, delayInSeconds);
       }
 
       function startCountdown(duration: number, element: HTMLElement) {
         let timer = duration;
-        intervalId = setInterval(() => {
+        countDownIntervalId = setInterval(() => {
           const minutes = Math.floor(timer / 60);
           const seconds = timer % 60;
 
           element.innerText = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
 
           if (--timer < 0) {
-            clearInterval(intervalId);
+            clearInterval(countDownIntervalId);
             element.innerText = "Time's up!";
           }
         }, 1000);
@@ -203,18 +253,37 @@ import Layout from "../layouts/Layout.astro";
         function updateNote() {
           const currNoteElement = document.getElementById("curr-note");
           if (currNoteElement) {
-            currNoteElement.innerText = shuffledArray[currentIndex];
-          }
+            if (currentIndex < shuffledArray.length) {
+							// Last one was a double, remove the underline
+							// Or it is a double, add the underline
+							if (
+                currentIndex > 0 &&
+                shuffledArray[currentIndex] === shuffledArray[currentIndex - 1]
+              ) {
+								if (prevUnderlined) {
+									currNoteElement.classList.remove("double");
+									prevUnderlined = false;
+								} else {
+									currNoteElement.classList.add("double");
+									prevUnderlined = true;
+								}
+							} else {
+								currNoteElement.classList.remove("double");
+								prevUnderlined = false;
+							}
 
-          currentIndex++;
-
-          // If currentIndex reaches the end of the array, reset it to start over
-          if (currentIndex === shuffledArray.length) {
-            currentIndex = 0;
+              currNoteElement.innerText = shuffledArray[currentIndex];
+              currentIndex++;
+            } else {
+              currNoteElement.innerText = "No more notes";
+              clearTimeout(noteIntervalId); // Clear the setTimeout
+            }
           }
 
           // Call updateNote again after the specified delay
-          setTimeout(updateNote, delayInSeconds * 1000);
+          if (currentIndex <= shuffledArray.length) {
+            noteIntervalId = setTimeout(updateNote, delayInSeconds * 1000);
+          }
         }
 
         // Start the iteration
