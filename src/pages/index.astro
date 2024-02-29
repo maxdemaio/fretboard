@@ -3,30 +3,11 @@ import Layout from "../layouts/Layout.astro";
 ---
 
 <style>
-  main {
-    padding: 0 0 8rem 0;
-  }
-
-	.note-container {
-		text-align: center;
-	}
   .header {
     text-align: center;
     font-size: 2rem;
   }
-  #fret-form {
-    border: solid gray 1px;
-    border-radius: 8px;
-    padding: 12px;
-  }
-  .numeric-input {
-    width: 50px;
-  }
-  #curr-note {
-    font-size: 8rem;
-    text-align: center;
-		line-height: 1;
-  }
+
 
   .double {
     border-bottom: solid 1px white;
@@ -34,81 +15,64 @@ import Layout from "../layouts/Layout.astro";
 </style>
 
 <Layout title="Fretboard">
-  <main class="">
-    <h1 class="header">Fretboard</h1>
-    <p>Here is an explanation of how the app works:</p>
-    <ul>
-      <li>
-        <a href="https://youtu.be/oqK0WrcokpM">https://youtu.be/oqK0WrcokpM</a>
-      </li>
-      <li>
-        Start with 3 notes on one string. This app will call out random note,
-        play it after you see it called out.
-      </li>
-
-      <li>
-        Do this for a couple minutes. Practice it until you can play the notes
-        right after with no hesitation.
-      </li>
-      <li>
-        The next day, practice the previous days' notes you did already to
-        start. Make sure there’s 0 hesitation. Only if you can do that, add one
-        note to that string and repeat the process.
-      </li>
-      <li>
-        The next day, repeat the same as above. After finishing the 6th string,
-        move to the 5th and so on. Take in data as your doing this like if it’s
-        on a dotted/non-dotted fret or relative stuff.
-      </li>
-      <li>
-        Other exercises: identify all the C’s vertically and horizontally.
-        Identify all notes in X chord. Identify the intervals in X chord.
-      </li>
-    </ul>
-
-    <section>
-      <form id="fret-form">
+  <section>
+    <form class="flex flex-col border border-neutral-600 rounded p-4 gap-4" id="fret-form">
+      <div class="flex flex-col md:flex-row gap-2">
         <label for="numericInput">Current string being practiced:</label>
         <input
-          class="numeric-input"
+          class="w-20 numeric-input rounded-sm"
           type="number"
           id="numericInput"
           name="numericInput"
           min="1"
           max="6"
           required
-        /><small>(1-6)</small><br /><br />
+        />
+      </div>
 
-        <label for="commaDelimitedInput">Notes you want to practice:</label>
+      <div class="flex flex-col md:flex-row gap-2">
+        <label for="commaDelimitedInput"
+          >Notes you want to practice (Enter comma-delimited letters only like
+          e,f,g):</label
+        >
         <input
+        class="rounded-sm"
           type="text"
           id="commaDelimitedInput"
           name="commaDelimitedInput"
           required
         />
-        <small>(Enter comma-delimited letters only like e,f,g)</small><br /><br />
-        <label for="numericInput">Time (minutes) you want to practice:</label>
+      </div>
+      <div class="flex flex-col md:flex-row gap-2">
+        <label for="numericInput"
+          >Time (minutes) you want to practice 1-100):</label
+        >
         <input
+        class="rounded-sm"
           type="number"
           id="numericInput2"
           name="numericInput2"
           min="1"
           max="100"
           required
-        /><small>(1-100)</small>
-        <br />
-        <input type="submit" value="Submit" />
-      </form>
-    </section>
-    <section>
+        />
+      </div>
+      <div class="self-center bg-neutral-800 px-4 py-2 rounded hover:bg-neutral-700 cursor-pointer">
+        <input class="cursor-pointer" type="submit" value="Submit" />
+      </div>
+    </form>
+  </section>
+  <section class="flex flex-col gap-6">
+    <div>
       <p>Current string: <span id="curr-string">None</span></p>
       <div>Countdown: <span id="countdown"></span></div>
       <p>Current note:</p>
-			<div class="note-container">
-				<span id="curr-note">No note</span>
-			</div>
-    </section>
-  </main>
+    </div>
+
+    <div class="text-5xl md:text-8xl flex items-center justify-center">
+      <span id="curr-note">No note</span>
+    </div>
+  </section>
 </Layout>
 
 <script>
@@ -116,7 +80,7 @@ import Layout from "../layouts/Layout.astro";
   let countDownIntervalId: number | undefined = undefined;
   let noteIntervalId: number | undefined = undefined;
   const delayInSeconds: number = 3; // Delay in seconds between notes
-	let prevUnderlined: boolean = false;
+  let prevUnderlined: boolean = false;
 
   // Function to shuffle array in place
   function shuffleArray(array: string[]) {
@@ -254,23 +218,23 @@ import Layout from "../layouts/Layout.astro";
           const currNoteElement = document.getElementById("curr-note");
           if (currNoteElement) {
             if (currentIndex < shuffledArray.length) {
-							// Last one was a double, remove the underline
-							// Or it is a double, add the underline
-							if (
+              // Last one was a double, remove the underline
+              // Or it is a double, add the underline
+              if (
                 currentIndex > 0 &&
                 shuffledArray[currentIndex] === shuffledArray[currentIndex - 1]
               ) {
-								if (prevUnderlined) {
-									currNoteElement.classList.remove("double");
-									prevUnderlined = false;
-								} else {
-									currNoteElement.classList.add("double");
-									prevUnderlined = true;
-								}
-							} else {
-								currNoteElement.classList.remove("double");
-								prevUnderlined = false;
-							}
+                if (prevUnderlined) {
+                  currNoteElement.classList.remove("double");
+                  prevUnderlined = false;
+                } else {
+                  currNoteElement.classList.add("double");
+                  prevUnderlined = true;
+                }
+              } else {
+                currNoteElement.classList.remove("double");
+                prevUnderlined = false;
+              }
 
               currNoteElement.innerText = shuffledArray[currentIndex];
               currentIndex++;
