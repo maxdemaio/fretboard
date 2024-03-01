@@ -4,7 +4,6 @@ interface Props {
 }
 
 const { title } = Astro.props;
-import "@fontsource/trade-winds";
 ---
 
 <!doctype html>
@@ -26,14 +25,3 @@ import "@fontsource/trade-winds";
     <slot />
   </body>
 </html>
-<style is:global>
-  h1 {
-    font-family: "Trade Winds";
-		font-display: block;
-  }
-
-	body {
-		font-family: 'Lateef', system-ui, sans-serif;
-		font-display: block;
-	}
-</style>
